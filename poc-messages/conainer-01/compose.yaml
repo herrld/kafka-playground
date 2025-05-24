@@ -1,0 +1,7 @@
+name: kafka-for-dotnet-poc
+
+services:
+  messages:
+    image: apache/kafka:latest
+    ports:
+      - 9092:9092
