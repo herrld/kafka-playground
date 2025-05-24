@@ -8,21 +8,33 @@ namespace KafkaWorker01
         private readonly IConsumer<string, string> consumer;
         private readonly IProducer<string, string> producer;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IConsumer<string, string> consumer)
         {
             _logger = logger;
+            this.consumer = consumer;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                if (_logger.IsEnabled(LogLevel.Information))
+                this.consumer.Subscribe("test-topic");
+
+
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    var item = this.consumer.Consume(stoppingToken);
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                        _logger.LogInformation($"from kafka: {item.Value}");
+
+                    }
                 }
-                await Task.Delay(1000, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
             }
         }
     }
